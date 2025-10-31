@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User authentication and roles
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  password      String
+  role          UserRole
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  metrics       Metric[]
+  tasks         Task[]
+  teamMembers   TeamMember[]
+  coachingNotes CoachingNote[]
+  schedulePostings SchedulePosting[]
+  bigSwings     BigSwing[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  CULINARY
+  HOSPITALITY
+  TOGO_BAR
+  GM
+}
+
+// Daily metrics for each role
+model Metric {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime    @db.Date
+  role        UserRole
+
+  // Culinary metrics
+  foodGreat72       Float?  // Food Great @ 72
+  safeScore         Float?  // Safe Score
+  specSold100       Float?  // Spec/Sold 100%
+  tmsAbove72        Int?    // TM's >72
+  pullThaw          Float?  // Pull Thaw
+
+  // Hospitality metrics
+  dineInGwap        Float?  // Dine-In GWAP
+  serverAttentive   Float?  // Server Attentive
+  clean             Float?  // Clean
+  incrementalAddOns Float?  // Incremental Add-Ons
+  runnerGap         Float?  // Runner Gap
+
+  // To-Go/Bar metrics
+  togoGwap          Float?  // ToGo GWAP
+  missingItems      Float?  // Missing Items
+  barIncremental    Float?  // Bar Incremental
+  mcrSignUps        Int?    // MCR Sign Ups
+
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([userId, date, role])
+  @@map("metrics")
+}
+
+// Tasks for each role
+model Task {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  role        UserRole
+  frequency   TaskFrequency
+  dueDate     DateTime?
+  completedAt DateTime?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("tasks")
+}
+
+enum TaskFrequency {
+  DAILY
+  WEEKLY
+  MON_WED
+  EOP
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+// Team members for each leader
+model TeamMember {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  position      String
+  hireDate      DateTime?
+  role          UserRole       // Which leader they belong to
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  coachingNotes CoachingNote[]
+  trainings     Training[]
+
+  @@map("team_members")
+}
+
+// Coaching notes
+model CoachingNote {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamMemberId  String
+  teamMember    TeamMember  @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  date          DateTime    @db.Date
+  topic         String
+  notes         String
+  followUpDate  DateTime?
+  actionItems   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("coaching_notes")
+}
+
+// Training tracker
+model Training {
+  id              String      @id @default(cuid())
+  teamMemberId    String
+  teamMember      TeamMember  @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  trainingType    String      // HOH Training, HOH VAT, HOH VFD, FOH Training, etc.
+  status          TrainingStatus
+  completionDate  DateTime?
+  expirationDate  DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("trainings")
+}
+
+enum TrainingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// Schedule posting tracker
+model SchedulePosting {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        UserRole
+  dueDate     DateTime
+  postedAt    DateTime?
+  isLate      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("schedule_postings")
+}
+
+// Big Swings tracker
+model BigSwing {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quarter     String      // e.g., "F26 Q2"
+  initiative  String      // e.g., "Southwest Queso"
+  subTasks    String[]    // Array of sub-task descriptions
+  completedTasks Int      @default(0)
+  totalTasks  Int
+  progress    Float       @default(0) // 0-100%
+  notes       String?
+  photoUrls   String[]    // Array of photo URLs
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("big_swings")
+}
