@@ -11,18 +11,11 @@ export interface TaskTemplate {
 export const CULINARY_TASKS: TaskTemplate[] = [
   // DAILY TASKS
   {
-    title: "Pull Thaw by 12pm",
+    title: "Validate Pull Thaw is done by 12pm",
     description: "Validate KitchenSync: prepped in order, Pull Thaw completed by noon",
     frequency: "DAILY",
     role: "CULINARY",
     dueTime: "12:00",
-  },
-  {
-    title: "HOH Connection Board Update",
-    description: "Update Back of House Connection Board with daily updates",
-    frequency: "DAILY",
-    role: "CULINARY",
-    dueTime: "16:00",
   },
 
   // WEEKLY TASKS (Mon-Wed for schedules, others on Monday)
@@ -35,9 +28,10 @@ export const CULINARY_TASKS: TaskTemplate[] = [
   },
   {
     title: "AvT: Action Plan",
-    description: "Complete At the Table Action Plan for the week",
-    frequency: "WEEKLY",
+    description: "Complete At the Table Action Plan for the period",
+    frequency: "MONTHLY",
     role: "CULINARY",
+    dueTime: "16:00",
   },
   {
     title: "AvT: Board Picture",
@@ -102,7 +96,14 @@ export const CULINARY_TASKS: TaskTemplate[] = [
     role: "CULINARY",
   },
 
-  // MONTHLY TASKS
+  // MONTHLY TASKS (First day of period)
+  {
+    title: "HOH Connection Board Update",
+    description: "Update Back of House Connection Board for the new period",
+    frequency: "MONTHLY",
+    role: "CULINARY",
+    dueTime: "16:00",
+  },
   {
     title: "Marketing Guide Validation",
     description: "Validate marketing guide compliance for Culinary",
